@@ -1,0 +1,26 @@
+# Replace 'LDAP://YourDomainController' with the LDAP path of your Domain Controller
+$domainController = 'LDAP://YourDomainController'
+
+# Replace 'C:\path\to\your\certificate.pfx' with the actual path to your .pfx or .p12 file
+$certificateFilePath = 'C:\path\to\your\certificate.pfx'
+
+# Replace 'CertificatePassword' with the password protecting your .pfx or .p12 file
+$certificatePassword = 'CertificatePassword'
+
+try {
+    # Import the certificate from the .pfx or .p12 file into the Current User's Personal Certificate Store
+    $cert = Import-PfxCertificate -FilePath $certificateFilePath -CertStoreLocation Cert:\CurrentUser\My -Password (ConvertTo-SecureString -String $certificatePassword -AsPlainText -Force)
+
+    # Create a DirectoryEntry object with SSL and certificate authentication
+    $directoryEntry = New-Object System.DirectoryServices.DirectoryEntry($domainController)
+    $directoryEntry.AuthenticationType = [System.DirectoryServices.AuthenticationTypes]::SecureSocketsLayer
+    $directoryEntry.Username = $cert.PrivateKey.CspKeyContainerInfo.UniqueKeyContainerName
+
+    # Attempt to bind to Active Directory using the provided certificate
+    $directoryEntry.NativeObject
+
+    Write-Host "Authentication successful. Connected to Active Directory using the certificate."
+}
+catch {
+    Write-Host "Authentication failed. Unable to connect to Active Directory using the certificate."
+}
