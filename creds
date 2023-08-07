@@ -1,0 +1,22 @@
+# Prompt the user to enter credentials
+$credentials = Get-Credential -Message "Enter your domain credentials"
+
+# Replace 'DomainControllerName' with the actual name of your domain controller
+$domainController = 'DomainControllerName'
+
+try {
+    # Create a context to connect to the domain controller
+    $context = New-Object System.DirectoryServices.AccountManagement.PrincipalContext([System.DirectoryServices.AccountManagement.ContextType]::Domain, $domainController)
+
+    # Validate the credentials
+    $isValid = $context.ValidateCredentials($credentials.UserName, $credentials.GetNetworkCredential().Password)
+
+    if ($isValid) {
+        Write-Host "Credentials are valid. Successfully authenticated against the domain controller."
+    } else {
+        Write-Host "Invalid credentials. Authentication against the domain controller failed."
+    }
+}
+catch {
+    Write-Host "An error occurred while validating credentials: $_"
+}
